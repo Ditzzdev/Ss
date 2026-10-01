@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kopken.net — Hotspot Cafe</title>
+<meta name="theme-color" content="#FAFAFA">
+<style>
+  :root{
+    box-sizing:border-box;
+    --bg:#FAFAFA;
+    --ink:#1A1A1A;
+    --ink-soft:#6E6E73;
+    --accent:#FF375F;
+    --glass:rgba(255,255,255,0.68);
+    --glass-strong:rgba(255,255,255,0.86);
+    --border:rgba(255,255,255,0.6);
+    --line:rgba(0,0,0,0.08);
+    --glass-frost:0.1;
+    --glass-saturation:1.2;
+    --filter-id:url(#glass-filter);
+    --bg-blur:0px;
+    --bg-dim:0.35;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#111214; --ink:#F3F3F5; --ink-soft:#9A9AA1;
+      --glass:rgba(30,30,34,0.55); --glass-strong:rgba(30,30,34,0.75);
+      --border:rgba(255,255,255,0.12); --line:rgba(255,255,255,0.08);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#111214; --ink:#F3F3F5; --ink-soft:#9A9AA1;
+    --glass:rgba(30,30,34,0.55); --glass-strong:rgba(30,30,34,0.75);
+    --border:rgba(255,255,255,0.12); --line:rgba(255,255,255,0.08);
+  }
+  html{scroll-padding-top:calc(24px + env(safe-area-inset-top,0px)); scroll-behavior:smooth; -webkit-tap-highlight-color:transparent;}
+  a, button{-webkit-tap-highlight-color:transparent; outline:none;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .bg-layer{
+    position:fixed; inset:0; z-index:-2;
+    background-color:var(--bg);
+    background-image:url('bg.png');
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    filter:blur(var(--bg-blur));
+  }
+  .bg-dim{
+    position:fixed; inset:0; z-index:-1;
+    background:rgba(0,0,0,var(--bg-dim));
+    transition:background .3s ease;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px;}
+  section{padding:96px 0 64px;}
+  section:first-of-type{padding-top:calc(72px + env(safe-area-inset-top,0px));}
+  h1{font-size:clamp(2.1rem,7vw,3.2rem); line-height:1.08; letter-spacing:-0.02em; margin:0 0 14px;}
+  h2{font-size:1.6rem; letter-spacing:-0.01em; margin:0 0 6px;}
+  .tagline{color:var(--ink-soft); font-size:1.05rem; line-height:1.55; max-width:46ch; margin:0 0 28px;}
+  .kicker{color:var(--accent); font-weight:600; font-size:0.92rem; margin:0 0 10px;}
+  .glass{
+    background:var(--glass);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border:1px solid var(--border);
+    border-radius:26px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.08);
+  }
+  .card{padding:22px 24px; margin-bottom:14px;}
+  .card p{color:var(--ink-soft); line-height:1.6; margin:0;}
+  .card h3{margin:0 0 8px; font-size:1.05rem;}
+  .reveal{opacity:1; transform:none;}
+
+  /* Hero */
+  .hero-badge{display:inline-flex; align-items:center; gap:8px; padding:8px 16px; font-size:0.85rem; color:var(--ink-soft); margin-bottom:22px;}
+  .hero-badge b{color:var(--accent);}
+
+  /* Problem/solution */
+  .split{display:grid; grid-template-columns:1fr; gap:14px;}
+  @media(min-width:640px){.split{grid-template-columns:1fr 1fr;}}
+
+  /* Topology */
+  .topo-svg{width:100%; height:auto; display:block; margin:8px 0 4px;}
+  .topo-line{stroke:var(--line); stroke-width:2; fill:none;}
+  .topo-flow{stroke:var(--accent); stroke-width:2.5; fill:none; stroke-dasharray:6 10; animation:flow 1.4s linear infinite;}
+  @keyframes flow{to{stroke-dashoffset:-32;}}
+  .topo-node{fill:var(--glass-strong); stroke:var(--line); stroke-width:1.5;}
+  .topo-label{font-size:12px; fill:var(--ink); font-family:inherit;}
+  .topo-sub{font-size:10.5px; fill:var(--ink-soft); font-family:inherit;}
+
+  /* Akses stepper */
+  .stepper{display:flex; flex-direction:column; gap:0; margin-top:8px;}
+  .step{display:flex; gap:16px; padding:14px 4px; cursor:pointer; border-radius:16px; transition:background .25s ease;}
+  .step:hover, .step.active{background:var(--glass-strong);}
+  .step-num{flex:0 0 auto; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:600; background:var(--glass-strong); border:1px solid var(--line); color:var(--ink-soft); transition:all .25s ease;}
+  .step.active .step-num{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .step-line{width:1px; background:var(--line); margin-left:15px; height:14px;}
+  .step-text{padding-top:3px;}
+  .step-text b{display:block; font-size:0.95rem; margin-bottom:2px;}
+  .step-text span{color:var(--ink-soft); font-size:0.88rem; display:none; line-height:1.5;}
+  .step.active .step-text span{display:block;}
+
+  /* RAB table */
+  .rab-row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 22px; border-bottom:1px solid var(--line); cursor:pointer;}
+  .rab-row:last-child{border-bottom:none;}
+  .rab-name{font-size:0.95rem;}
+  .rab-price{font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .rab-detail{max-height:0; overflow:hidden; transition:max-height .35s ease; font-size:0.85rem; color:var(--ink-soft); padding:0 22px;}
+  .rab-detail.open{max-height:60px; padding:0 22px 14px;}
+  .rab-total{display:flex; justify-content:space-between; padding:18px 22px; font-weight:700; font-size:1.05rem;}
+
+  /* Teknis */
+  .kv{display:flex; justify-content:space-between; gap:16px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.9rem;}
+  .kv:last-child{border-bottom:none;}
+  .kv span:first-child{color:var(--ink-soft);}
+  .kv span:last-child{text-align:right; font-variant-numeric:tabular-nums;}
+
+  /* Dock — liquid glass (SVG displacement filter) */
+  .dock-wrap{position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; z-index:50; padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)); pointer-events:none;}
+  .dock{
+    position:relative;
+    display:flex; gap:2px; padding:6px; pointer-events:auto;
+    background:hsl(0 0% 0% / var(--glass-frost,0.1));
+    -webkit-backdrop-filter:var(--filter-id,url(#glass-filter)) saturate(var(--glass-saturation,1.2)) blur(1px);
+    backdrop-filter:var(--filter-id,url(#glass-filter)) saturate(var(--glass-saturation,1.2)) blur(1px);
+    border-radius:9999px;
+    box-shadow:
+      inset 0 0 2px 1px rgba(255,255,255,0.35),
+      inset 0 0 10px 4px rgba(255,255,255,0.15),
+      inset 0 4px 16px rgba(17,17,26,0.05),
+      inset 0 8px 24px rgba(17,17,26,0.05),
+      inset 0 6px 56px rgba(17,17,26,0.05),
+      0 8px 32px rgba(0,0,0,0.22);
+    max-width:94vw; overflow-x:visible;
+    touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none;
+  }
+  .dock.dragging{cursor:grabbing;}
+  .dock-pill{
+    position:absolute; top:6px; left:6px; height:calc(100% - 12px); width:60px;
+    background:rgba(255,255,255,0.24);
+    border-radius:999px;
+    box-shadow:inset 0 0 1px 1px rgba(255,255,255,0.5), 0 1px 2px rgba(0,0,0,0.1);
+    transition:
+      left .5s cubic-bezier(0.34,1.56,0.64,1),
+      width .5s cubic-bezier(0.34,1.56,0.64,1),
+      transform .32s cubic-bezier(0.34,1.56,0.64,1),
+      box-shadow .32s ease,
+      background .32s ease;
+    pointer-events:none; z-index:0;
+  }
+  .dock-pill.no-transition{
+    transition:
+      transform .32s cubic-bezier(0.34,1.56,0.64,1),
+      box-shadow .32s ease,
+      background .32s ease;
+  }
+  .dock-pill.floating{
+    transform:translateY(-5px) scale(1.14);
+    background:rgba(255,255,255,0.36);
+    box-shadow:
+      inset 0 0 2px 1px rgba(255,255,255,0.65),
+      inset 0 0 16px 5px rgba(255,255,255,0.3),
+      0 14px 26px rgba(0,0,0,0.35),
+      0 4px 10px rgba(0,0,0,0.22);
+  }
+  .dock-pill.pop{transform:scale(1.05,0.9);}
+  .dock a{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:9px 14px; border-radius:999px; text-decoration:none;
+    color:rgba(255,255,255,0.75); font-size:10.5px; white-space:nowrap;
+    transition:color .2s ease;
+  }
+  .dock a svg{width:19px; height:19px;}
+  .dock a.active{color:#fff;}
+  .dock a.active svg{stroke:var(--accent); color:var(--accent);}
+  .dock a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  button.cta{
+    border:none; cursor:pointer; padding:13px 26px; border-radius:999px;
+    background:var(--accent); color:#fff; font-size:0.95rem; font-weight:600;
+    transition:transform .2s ease, filter .2s ease;
+  }
+  button.cta:hover{transform:scale(1.03); filter:brightness(1.05);}
+  .footer{text-align:center; color:var(--ink-soft); font-size:0.8rem; padding:40px 0 140px;}
+
+  @media print{
+    *{animation:none !important; transition:none !important;}
+    html{scroll-behavior:auto;}
+    .reveal{opacity:1 !important; transform:none !important;}
+    .dock-wrap{display:none !important;}
+    .glass, .card, .rab-row, .step{break-inside:avoid; page-break-inside:avoid;}
+    .rab-detail{max-height:none !important; overflow:visible !important;}
+    body{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .footer{padding-bottom:20px;}
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+  <defs>
+    <filter id="glass-filter" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.012" numOctaves="2" seed="8" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2.5" result="softNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="bg-layer" id="bgLayer"></div>
+<div class="bg-dim" id="bgDim"></div>
+
+<div class="wrap">
+
+  <section id="home">
+    <div class="hero-badge glass"><b>●</b> XI TKJ 2 — Proyek PKWU</div>
+    <h1>Kopken.net</h1>
+    <p class="tagline">Wi-Fi cafe yang stabil untuk semua orang. Voucher untuk pengunjung, akses penuh untuk karyawan — tanpa saling rebutan bandwidth.</p>
+    <div class="glass card reveal">
+      <h3>Masalah di lapangan</h3>
+      <p>Koneksi Wi-Fi cafe sering lambat karena bandwidth tidak diatur, pengguna menumpuk tanpa batas, dan sebagian konsumen memonopoli jaringan.</p>
+    </div>
+    <div class="glass card reveal">
+      <h3>Solusi</h3>
+      <p>Fiber optik hingga 100 Mbps, jaringan karyawan dan pengunjung dipisah, dan setiap pengunjung dibatasi 5 Mbps lewat voucher agar pembagian tetap adil.</p>
+    </div>
+  </section>
+
+  <section id="topologi">
+    <p class="kicker reveal">Topologi Star</p>
+    <h2 class="reveal">Semua jalur bertemu di satu router</h2>
+    <p class="tagline reveal">MikroTik RB750Gr3 jadi pusat kendali. Kalau Access Point bermasalah, kasir tetap jalan — isolasi gangguan jadi lebih cepat.</p>
+    <div class="glass card reveal" style="padding:26px 20px 18px;">
+      <svg class="topo-svg" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+        <path class="topo-line" d="M70,110 H230"/>
+        <path class="topo-flow" d="M70,110 H230"/>
+        <path class="topo-line" d="M310,110 L430,50"/>
+        <path class="topo-flow" d="M310,110 L430,50"/>
+        <path class="topo-line" d="M310,110 L430,170"/>
+        <path class="topo-flow" d="M310,110 L430,170"/>
+        <path class="topo-line" d="M510,50 H580"/>
+        <path class="topo-flow" d="M510,50 H580"/>
+        <path class="topo-line" d="M510,170 H580"/>
+        <path class="topo-flow" d="M510,170 H580"/>
+
+        <rect class="topo-node" x="10" y="88" width="60" height="44" rx="12"/>
+        <text class="topo-label" x="40" y="115" text-anchor="middle">ISP</text>
+
+        <rect class="topo-node" x="230" y="80" width="80" height="60" rx="16"/>
+        <text class="topo-label" x="270" y="106" text-anchor="middle">MikroTik</text>
+        <text class="topo-sub" x="270" y="122" text-anchor="middle">RB750Gr3</text>
+
+        <rect class="topo-node" x="430" y="28" width="80" height="44" rx="12"/>
+        <text class="topo-label" x="470" y="54" text-anchor="middle">Ether2</text>
+        <text class="topo-sub" x="470" y="66" text-anchor="middle">Karyawan</text>
+
+        <rect class="topo-node" x="430" y="148" width="80" height="44" rx="12"/>
+        <text class="topo-label" x="470" y="174" text-anchor="middle">Ether3</text>
+        <text class="topo-sub" x="470" y="186" text-anchor="middle">Access Point</text>
+
+        <rect class="topo-node" x="580" y="28" width="50" height="44" rx="12"/>
+        <text class="topo-label" x="605" y="54" text-anchor="middle" font-size="10">PC/POS</text>
+
+        <rect class="topo-node" x="580" y="148" width="50" height="44" rx="12"/>
+        <text class="topo-label" x="605" y="174" text-anchor="middle" font-size="10">Pengunjung</text>
+      </svg>
+    </div>
+    <div class="split">
+      <div class="glass card reveal"><h3>Ether2 · Karyawan</h3><p>Subnet 192.168.10.1/24 — SSID/LAN Kopken_Internal, akses penuh tanpa batas kecepatan.</p></div>
+      <div class="glass card reveal"><h3>Ether3 · Pengunjung</h3><p>Subnet 192.168.20.1/24 — SSID Kopken.net_FreeWiFi, dibatasi 5 Mbps per perangkat.</p></div>
+    </div>
+  </section>
+
+  <section id="akses">
+    <p class="kicker reveal">Captive Portal</p>
+    <h2 class="reveal">Alur login pengunjung</h2>
+    <p class="tagline reveal">Klik tiap langkah untuk lihat detailnya.</p>
+    <div class="glass reveal" style="padding:8px 14px;">
+      <div class="stepper" id="stepper">
+        <div class="step active" data-i="0"><div class="step-num">1</div><div class="step-text"><b>Pesan makanan/minuman</b><span>Pengunjung memesan di kasir seperti biasa.</span></div></div>
+        <div class="step" data-i="1"><div class="step-num">2</div><div class="step-text"><b>Terima struk berkode voucher</b><span>Kasir mencetak struk yang berisi kode voucher Wi-Fi.</span></div></div>
+        <div class="step" data-i="2"><div class="step-num">3</div><div class="step-text"><b>Hubungkan ke SSID</b><span>Perangkat disambungkan ke Kopken.net_FreeWiFi.</span></div></div>
+        <div class="step" data-i="3"><div class="step-num">4</div><div class="step-text"><b>Halaman portal terbuka</b><span>Captive portal muncul otomatis di layar.</span></div></div>
+        <div class="step" data-i="4"><div class="step-num">5</div><div class="step-text"><b>Masukkan kode & login</b><span>Kode voucher dimasukkan lalu tombol Login ditekan.</span></div></div>
+        <div class="step" data-i="5"><div class="step-num">6</div><div class="step-text"><b>Internet aktif</b><span>Akses aktif dengan kecepatan maksimal 5 Mbps.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rab">
+    <p class="kicker reveal">Anggaran</p>
+    <h2 class="reveal">Rancangan Anggaran Biaya</h2>
+    <p class="tagline reveal">Ketuk tiap baris untuk detail spesifikasi.</p>
+    <div class="glass reveal" id="rab-list">
+      <div class="rab-row" data-d="Paket Up to 100 Mbps, biaya awal/deposito.">
+        <span class="rab-name">ISP Service — MyRepublic</span><span class="rab-price">Rp350.000</span>
+      </div>
+      <div class="rab-detail"></div>
+      <div class="rab-row" data-d="MikroTik RouterBOARD RB750Gr3 (hEX v3).">
+        <span class="rab-name">Router Main Board</span><span class="rab-price">Rp950.000</span>
+      </div>
+      <div class="rab-detail"></div>
+      <div class="rab-row" data-d="TP-Link EAP110, Ceiling Mount, Wireless N300.">
+        <span class="rab-name">Access Point Indoor</span><span class="rab-price">Rp450.000</span>
+      </div>
+      <div class="rab-detail"></div>
+      <div class="rab-row" data-d="Kabel UTP Cat6 (20 meter) + konektor RJ45.">
+        <span class="rab-name">Kabel & Konektor</span><span class="rab-price">Rp100.000</span>
+      </div>
+      <div class="rab-detail"></div>
+      <div class="rab-row" data-d="WinBox & Mikhmon — aplikasi pembuat voucher, open source.">
+        <span class="rab-name">Software Management</span><span class="rab-price">Gratis</span>
+      </div>
+      <div class="rab-detail"></div>
+      <div class="rab-total"><span>Total estimasi modal awal</span><span>Rp1.850.000</span></div>
+    </div>
+  </section>
+
+  <section id="teknis">
+    <p class="kicker reveal">Implementasi</p>
+    <h2 class="reveal">Konfigurasi & pemeliharaan</h2>
+    <div class="glass card reveal">
+      <h3>Bandwidth</h3>
+      <div class="kv"><span>Profile Pengunjung</span><span>5M / 5M</span></div>
+      <div class="kv"><span>Profile Karyawan</span><span>Unlimited</span></div>
+    </div>
+    <div class="glass card reveal">
+      <h3>Mitigasi & pemeliharaan</h3>
+      <div class="kv"><span>Listrik padam</span><span>Mini UPS di Router & AP</span></div>
+      <div class="kv"><span>Router overload</span><span>Auto-reboot 03.00 WIB</span></div>
+      <div class="kv"><span>Backup konfigurasi</span><span>.backup & .rsc, mingguan</span></div>
+    </div>
+  </section>
+
+  <div class="footer">Dokumen Proyek PKWU · XI TKJ 2 — Kopken.net Hotspot Cafe System</div>
+</div>
+
+<div class="dock-wrap">
+  <nav class="dock" id="dock">
+    <div class="dock-pill" id="dockPill"></div>
+    <a href="#home" class="active" data-s="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h14v-9"/></svg>Home</a>
+    <a href="#topologi" data-s="topologi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v5M12 12.2 6.3 17M12 12.2 17.7 17"/></svg>Topologi</a>
+    <a href="#akses" data-s="akses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Akses</a>
+    <a href="#rab" data-s="rab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3 5 1.1 5 3-2.2 3-5 3-5-1.1-5-3"/></svg>RAB</a>
+    <a href="#teknis" data-s="teknis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1h-.2a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.6v-.2a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.6 1h.2a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1z"/></svg>Teknis</a>
+  </nav>
+</div>
+
+<script>
+  // scroll reveal
+  document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+
+  // dock: pill position + scroll sync + drag/swipe gesture
+  const dock = document.getElementById('dock');
+  const pill = document.getElementById('dockPill');
+  const dockLinks = [...document.querySelectorAll('#dock a')];
+  const sections = dockLinks.map(a=>document.getElementById(a.dataset.s));
+  let currentIndex = 0;
+  let programmaticScroll = false;
+  let scrollSettleTimer = null;
+
+  const placePill = (link)=>{
+    pill.style.left = link.offsetLeft + 'px';
+    pill.style.width = link.offsetWidth + 'px';
+  };
+
+  const setIndex = (i, {jump=false, pop=false} = {})=>{
+    currentIndex = i;
+    dockLinks.forEach((a,idx)=>a.classList.toggle('active', idx===i));
+    placePill(dockLinks[i]);
+    if(pop){
+      pill.classList.add('pop');
+      setTimeout(()=>pill.classList.remove('pop'), 220);
+    }
+    if(jump && sections[i]){
+      programmaticScroll = true;
+      clearTimeout(scrollSettleTimer);
+      sections[i].scrollIntoView({behavior:'smooth', block:'start'});
+      scrollSettleTimer = setTimeout(()=>{ programmaticScroll = false; syncFromScroll(); }, 700);
+    }
+  };
+
+  // keep pill synced with page scroll position
+  const syncFromScroll = ()=>{
+    if(programmaticScroll) return;
+    let idx = 0, top = window.scrollY + 140;
+    sections.forEach((s,i)=>{ if(s && s.offsetTop <= top) idx = i; });
+    if(idx !== currentIndex) setIndex(idx);
+  };
+  window.addEventListener('scroll', syncFromScroll, {passive:true});
+  window.addEventListener('resize', ()=>placePill(dockLinks[currentIndex]));
+
+  placePill(dockLinks[0]);
+
+  // dock gesture: tap and drag/swipe handled in one flow (no reliance on native click,
+  // which is what caused a stray tap to get eaten right after a swipe)
+  let dragging = false, startX = 0, dragIndex = 0, startLeft = 0, currentLeftPos = 0, tapTarget = null;
+  const getX = (e)=> (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
+  const dockBounds = (width)=> [6, dock.clientWidth - 6 - width];
+
+  const onMove = (e)=>{
+    if(!dragging) return;
+    e.preventDefault();
+    const dx = getX(e) - startX;
+    const w = pill.offsetWidth;
+    const [min, max] = dockBounds(w);
+    currentLeftPos = Math.max(min, Math.min(max, startLeft + dx));
+    pill.style.left = currentLeftPos + 'px';
+  };
+  const onUp = ()=>{
+    if(!dragging) return;
+    dragging = false;
+    dock.classList.remove('dragging');
+    pill.classList.remove('no-transition');
+    pill.classList.remove('floating');
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+
+    const moved = Math.abs(currentLeftPos - startLeft);
+    if(moved < 4){
+      // it was a tap, not a drag — jump straight to the tapped materi
+      const idx = tapTarget!=null ? tapTarget : dragIndex;
+      setIndex(idx, {jump:true, pop:true});
+      return;
+    }
+    const w = pill.offsetWidth;
+    const centerPos = currentLeftPos + w / 2;
+    let nearest = 0, minDist = Infinity;
+    dockLinks.forEach((a,i)=>{
+      const c = a.offsetLeft + a.offsetWidth / 2;
+      const d = Math.abs(c - centerPos);
+      if(d < minDist){ minDist = d; nearest = i; }
+    });
+    setIndex(nearest, {jump:true, pop:true});
+  };
+  dock.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    const link = e.target.closest('a');
+    tapTarget = link ? dockLinks.indexOf(link) : null;
+    dragging = true;
+    startX = getX(e);
+    dragIndex = currentIndex;
+    startLeft = dockLinks[dragIndex].offsetLeft;
+    currentLeftPos = startLeft;
+    dock.classList.add('dragging');
+    pill.classList.add('no-transition');
+    pill.classList.add('floating');
+    window.addEventListener('pointermove', onMove, {passive:false});
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  });
+
+  // stepper
+  document.querySelectorAll('.step').forEach(step=>{
+    step.addEventListener('click', ()=>{
+      document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+      step.classList.add('active');
+    });
+  });
+
+  // RAB expand
+  document.querySelectorAll('.rab-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const detail = row.nextElementSibling;
+      if(!detail.textContent){ detail.textContent = row.dataset.d; }
+      detail.classList.toggle('open');
+    });
+  });
+</script>
+</body>
+</html>
